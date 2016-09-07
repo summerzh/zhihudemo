@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.List;
 
@@ -32,15 +31,13 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Vi
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder ViewHolder, int position) {
+    public void onBindViewHolder(final ViewHolder ViewHolder, int position) {
 
         if (mResults != null) {
             Glide.with(mContext)
                     .load(mResults.get(position).getUrl())
-                    .placeholder(R.color.white)
                     .fitCenter()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .error(R.mipmap.ic_launcher)
+                    .placeholder(R.color.white)
                     .into(ViewHolder.mImageView);
         }
     }
@@ -53,6 +50,8 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Vi
         return mResults.size();
     }
 
+
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private RatioImageView mImageView;
@@ -61,7 +60,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Vi
             super(itemView);
 
             mImageView = (RatioImageView) itemView.findViewById(R.id.iv_girl);
-            mImageView.setOriginalSize(50, 50);
+//            mImageView.setOriginalSize(100, 100);
         }
     }
 }

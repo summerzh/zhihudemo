@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.it.zhihudemo.widget.SpacesItemDecoration;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private  Handler mHandler = new Handler();
     private SwipeRefreshLayout mRefreshLayout;
     private int mPage = 1;
+    private StaggeredGridLayoutManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +52,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void initEvent() {
 
 
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2,
+        mManager = new StaggeredGridLayoutManager(2,
                 1);
-        //
-        mRecyclerView.setLayoutManager(manager);
+        mManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        mRecyclerView.setLayoutManager(mManager);
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(10));
         mGirlsList = new ArrayList<>();
         mMyRecyclerAdapter = new MyRecyclerAdapter(this, mGirlsList);
         mRecyclerView.setAdapter(mMyRecyclerAdapter);
-        mRecyclerView.addOnScrollListener(getOnBottomListener(manager));
+        mRecyclerView.addOnScrollListener(getOnBottomListener(mManager));
 
         mRefreshLayout.setOnRefreshListener(this);
     }
@@ -78,6 +81,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     SwipeRefreshLayoutStart();
                 }
             }
+
+//            @Override
+//            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+//                super.onScrollStateChanged(recyclerView, newState);
+//                mManager.invalidateSpanAssignments();
+//            }
         };
     }
 

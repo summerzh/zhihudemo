@@ -20,13 +20,13 @@
 package com.it.zhihudemo;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
 public class RatioImageView extends ImageView {
 
-    private int originalWidth;
-    private int originalHeight;
+    private double hwRatio;
 
 
     public RatioImageView(Context context) {
@@ -44,26 +44,28 @@ public class RatioImageView extends ImageView {
     }
 
 
-    public void setOriginalSize(int originalWidth, int originalHeight) {
-        this.originalWidth = originalWidth;
-        this.originalHeight = originalHeight;
-    }
-
-
-    @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (originalWidth > 0 && originalHeight > 0) {
-            float ratio = (float) originalWidth / (float) originalHeight;
-
-            int width = MeasureSpec.getSize(widthMeasureSpec);
-            int height = MeasureSpec.getSize(heightMeasureSpec);
-            // TODO: 现在只支持固定宽度
-            if (width > 0) {
-                height = (int) ((float) width / ratio);
-            }
-
-            setMeasuredDimension(width, height);
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        //获取当前ImageView分配的宽度(即Item项的宽度)
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        if (widthSize != 0 && hwRatio != 0) {
+            //根据高宽比，计算出ImagView需要的高度widthSize* hwRatio，并设置其大小
+            setMeasuredDimension(widthSize, (int) (widthSize * hwRatio));
         } else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
+    }
+
+    @Override
+    public void setImageResource(int resId) {
+        super.setImageResource(resId);
+
+    }
+
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        super.setImageBitmap(bm);
+        hwRatio = bm.getHeight() / (double) bm.getWidth();
+        bm.recycle();
     }
 }
