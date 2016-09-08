@@ -4,7 +4,7 @@ import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-/**
+/**用来设置item间距
  * created by summer on 2016/9/7
  */
 public class SpacesItemDecoration extends RecyclerView.ItemDecoration {

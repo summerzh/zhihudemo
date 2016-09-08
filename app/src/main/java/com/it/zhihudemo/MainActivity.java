@@ -1,5 +1,6 @@
 package com.it.zhihudemo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -9,8 +10,10 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 
 import com.google.gson.Gson;
+import com.it.zhihudemo.listener.OnMeiziClickedListener;
 import com.it.zhihudemo.widget.SpacesItemDecoration;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
@@ -22,7 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, OnMeiziClickedListener {
 
     private static final String TAG       = "result";
     private static final int PRELOAD_SIZE = 6;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         mRecyclerView.addOnScrollListener(getOnBottomListener(mManager));
 
         mRefreshLayout.setOnRefreshListener(this);
+        mMyRecyclerAdapter.setOnMeiziClickedListener(this);
     }
 
     private RecyclerView.OnScrollListener getOnBottomListener(final StaggeredGridLayoutManager manager) {
@@ -126,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     public void run() {
                         mMyRecyclerAdapter.notifyDataSetChanged();
                         if (mRefreshLayout.isRefreshing()) {
+                            mPage++;
                             SwipeRefreshLayoutStop();
                         }
                     }
@@ -159,8 +164,22 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public void onRefresh() {
-        mPage++;
         requestData();
+    }
+
+    @Override
+    public void onMeiziClicked(View v, RatioImageView view, GirlInfo.ResultsEntity meizi) {
+
+
+        Intent intent = MeiziDetailActivity.newInstance(this, meizi.getUrl());
+        // 转场动画
+//        ActivityOptionsCompat options =
+//                ActivityOptionsCompat.makeSceneTransitionAnimation(this, view, MeiziDetailActivity.TRANSIT_PIC);
+//        if (Build.VERSION.SDK_INT > 20) {
+//            ActivityCompat.startActivity(this, intent, options.toBundle());
+//        } else {
+            startActivity(intent);
+//        }
     }
 }
 

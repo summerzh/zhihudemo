@@ -20,7 +20,6 @@
 package com.it.zhihudemo;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -44,28 +43,20 @@ public class RatioImageView extends ImageView {
     }
 
 
+    public void setRatio(double ratio) {
+        this.hwRatio = ratio;
+    }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         //获取当前ImageView分配的宽度(即Item项的宽度)
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         if (widthSize != 0 && hwRatio != 0) {
             //根据高宽比，计算出ImagView需要的高度widthSize* hwRatio，并设置其大小
-            setMeasuredDimension(widthSize, (int) (widthSize * hwRatio));
+            setMeasuredDimension(widthSize, (int) (widthSize * hwRatio + 0.5));
         } else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
     }
 
-    @Override
-    public void setImageResource(int resId) {
-        super.setImageResource(resId);
 
-    }
-
-    @Override
-    public void setImageBitmap(Bitmap bm) {
-        super.setImageBitmap(bm);
-        hwRatio = bm.getHeight() / (double) bm.getWidth();
-        bm.recycle();
-    }
 }
