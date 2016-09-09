@@ -1,37 +1,36 @@
 package com.it.zhihudemo;
 
-import com.it.zhihudemo.listener.OnLoadDataListener;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import com.it.zhihudemo.bean.UrlKey;
 
-import java.io.IOException;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * created by gyt on 2016/8/25
  */
 public class NetworkManger {
 
-    public static void loadData(String url, final OnLoadDataListener listener) {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                listener.onFailed(e);
-            }
+    public static final String MEIZI_SIZE = "10";
 
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String data = response.body().string();
-                listener.onSuccess(data);
-            }
-        });
+    public static MeiziApi getMeiziApi() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(UrlKey.MEIZI_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build();
+        MeiziApi meiziApi = retrofit.create(MeiziApi.class);
+        return meiziApi;
+    }
+
+    public static MeiziApi getWeather() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://www.weather.com.cn/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build();
+
+        return retrofit.create(MeiziApi.class);
     }
 
 }

@@ -14,18 +14,29 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.it.zhihudemo.utils.Share;
+import com.it.zhihudemo.utils.ToastUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.concurrent.ExecutionException;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
@@ -34,8 +45,14 @@ import uk.co.senab.photoview.PhotoViewAttacher;
 public class MeiziDetailActivity extends AppCompatActivity implements RequestListener<String, GlideDrawable>, PhotoViewAttacher.OnViewTapListener, View.OnLongClickListener {
 
     private static final String EXTRA_IMAGE_URL = "image_url";
-    public static final String TRANSIT_PIC      = "iv_meizi";
-    private ImageView mImageView;
+    public static final  String TRANSIT_PIC     = "iv_meizi";
+    private static final String TAG             = "MeiziDetailActivity";
+    @BindView(R.id.iv_detail)
+    ImageView mIvDetail;
+    @BindView(R.id.iv_meizi_save)
+    ImageView mIvMeiziSave;
+    @BindView(R.id.iv_meizi_share)
+    ImageView mIvMeiziShare;
     private String mImageUrl;
 
     public static Intent newInstance(Context context, String url) {
@@ -48,24 +65,46 @@ public class MeiziDetailActivity extends AppCompatActivity implements RequestLis
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        ButterKnife.bind(this);
         Log.d("result", "onCreate ");
         initView();
         initEvent();
         setImageViewAttacher();
     }
 
+    @OnClick({
+            R.id.iv_meizi_save,
+            R.id.iv_meizi_share,
+    })
+    public void optionClick(View v) {
+        switch (v.getId()) {
+            case R.id.iv_meizi_save:
+                saveImageToLocal();
+                break;
+            case R.id.iv_meizi_share:
+                shareImage();
+                break;
+        }
+
+    }
+
+    private void shareImage() {
+        Uri uri = Uri.parse(mImageUrl);
+        Share.shareImage(this, uri, getString(R.string.Share_Meizi_to));
+    }
+
     private void setImageViewAttacher() {
-        PhotoViewAttacher photoViewAttacher = new PhotoViewAttacher(mImageView);
+        PhotoViewAttacher photoViewAttacher = new PhotoViewAttacher(mIvDetail);
         photoViewAttacher.setOnViewTapListener(this);
         photoViewAttacher.setOnLongClickListener(this);
     }
 
     //    @Override
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//        setIntent(intent);
-//        initEvent();
-//    }
+    //    protected void onNewIntent(Intent intent) {
+    //        super.onNewIntent(intent);
+    //        setIntent(intent);
+    //        initEvent();
+    //    }
 
     private void initEvent() {
         Intent intent = getIntent();
@@ -73,27 +112,25 @@ public class MeiziDetailActivity extends AppCompatActivity implements RequestLis
         Glide.with(this)
                 .load(mImageUrl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .crossFade(0)
                 .listener(this)
                 .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
     }
 
 
     private void initView() {
-        mImageView = (ImageView) findViewById(R.id.iv_detail);
         setToolBar();
-
     }
 
     private void setToolBar() {
-        if (Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View decorView = getWindow().getDecorView();
             int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
             decorView.setSystemUiVisibility(option);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        // 注意下面两句代码,如果应用的主题是NoActionBar时,调用会报错, 此时就不需要加了
 
     }
 
@@ -105,7 +142,7 @@ public class MeiziDetailActivity extends AppCompatActivity implements RequestLis
 
     @Override
     public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-        mImageView.setImageDrawable(resource);
+        mIvDetail.setImageDrawable(resource);
         return false;
     }
 
@@ -135,42 +172,76 @@ public class MeiziDetailActivity extends AppCompatActivity implements RequestLis
     }
 
     private void saveImageToLocal() {
-        Bitmap bitmap = null;
-        try {
-            bitmap = Glide.with(this)
-                    .load(mImageUrl)
-                    .asBitmap()
-                    .into(-1, -1)
-                    .get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        if (bitmap == null) {
-            Toast.makeText(MeiziDetailActivity.this, "下载图片失败", Toast.LENGTH_SHORT).show();
-        }
+        Observable.just(mImageUrl)
+                .map(new Func1<String, Bitmap>() {
+                    @Override
+                    public Bitmap call(String s) {
+                        Bitmap bitmap = null;
+                        try {
+                            bitmap = Glide.with(MeiziDetailActivity.this)
+                                    .load(mImageUrl)
+                                    .asBitmap()
+                                    .into(-1, -1)
+                                    .get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        return bitmap;
+                    }
+                })
+                .map(new Func1<Bitmap, Uri>() {
+                    @Override
+                    public Uri call(Bitmap bitmap) {
 
-        File dir = new File(Environment.getExternalStorageDirectory(), "Meizi");
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-        String fileName = mImageUrl;
-        File file = new File(dir, fileName);
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-            assert bitmap != null;
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.flush();
-            fos.close();
-            Toast.makeText(MeiziDetailActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(MeiziDetailActivity.this, "保存失败", Toast.LENGTH_SHORT).show();
-        }
+                        File dir = new File(Environment.getExternalStorageDirectory(), "Meizi");
+                        if (!dir.exists()) {
+                            dir.mkdir();
+                        }
+                        String fileName = mImageUrl.replace("/", "-");
+                        File file = new File(dir, fileName);
+                        try {
+                            FileOutputStream fos = new FileOutputStream(file);
+                            assert bitmap != null;
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                            fos.flush();
+                            fos.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
-        // 通知图库刷新]
-        Uri uri = Uri.fromFile(file);
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
-        sendBroadcast(intent);
+                        // 通知图库刷新]
+                        Uri uri = Uri.fromFile(file);
+                        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
+                        sendBroadcast(intent);
+                        return uri;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Uri>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        ToastUtil.showShort(R.string.picture_save_failed);
+                    }
+
+                    @Override
+                    public void onNext(Uri uri) {
+                        File appDir = new File(Environment.getExternalStorageDirectory(), "Meizhi");
+                        String msg = String.format(getString(R.string.picture_has_save_to),
+                                appDir.getAbsolutePath());
+                        ToastUtil.showShort(msg);
+                    }
+                });
+
+
     }
 }

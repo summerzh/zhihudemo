@@ -1,4 +1,8 @@
 <resources>
-    <string name="app_name">ZhiHuDemo</string>
+    <string name="app_name">妹子</string>
     <string name="ask_saving_picture">是否保存图片到本地?</string>
+    <string name="meizi_share">分享</string>
+    <string name="Share_Meizi_to">分享妹子到...</string>
+    <string name="picture_has_save_to">图片已经保存到 %s 目录</string>
+    <string name="picture_save_failed">保存出错了...</string>
 </resources>

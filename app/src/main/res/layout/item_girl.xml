@@ -18,7 +18,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <com.it.zhihudemo.RatioImageView
+        <com.it.zhihudemo.widget.RatioImageView
             android:transitionName="iv_meizi"
             android:id="@+id/iv_girl"
             android:layout_width="match_parent"
